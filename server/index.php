@@ -24,13 +24,26 @@ function openSesame($mqtt, $topic1, $topic2, $delay) {
 	$mqtt->publish($topic2,"open");
 }
 
-$errorCode = 0;
-$errorMessage = 'OK';
+function printResponse($code, $message) {
+	echo json_encode(array('errorCode' => $code, 'errorMessage' => $message));
+}
+
 if (false === $mqtt->connect()) {
-	$errorCode = 1;
-	$errorMessage = 'Unable to connect to MQTT broker.';
+	printResponse(1, 'Unable to connect to MQTT broker.');
 }
 else {
+
+	ob_end_clean();
+	header("Connection: close\r\n");
+	header("Content-Encoding: none\r\n");
+	ignore_user_abort(true); // optional
+	ob_start();
+	printResponse(0, 'OK');
+	header("Content-Length: ".ob_get_length());
+	ob_end_flush();     // Strange behaviour, will not work
+	flush();            // Unless both are called !
+	ob_end_clean();
+
 	//Run the sequence to enter the building if the command is еntrance
 	//or if it has not been specified.
 	if ( (false === isset($_REQUEST['command'])) || ('exit' !== $_REQUEST['command']) ) {
@@ -42,5 +55,4 @@ else {
 	}
 	$mqtt->close();
 }
-echo json_encode(array('errorCode' => $errorCode, 'errorMessage' => $errorMessage));
 ?>
