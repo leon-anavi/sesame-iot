@@ -33,7 +33,7 @@ if (false === $mqtt->connect()) {
 else {
 	//Run the sequence to enter the building if the command is еntrance
 	//or if it has not been specified.
-	if ( (false === isset($_REQUEST['command'])) || ('еntrance' === $_REQUEST['command']) ) {
+	if ( (false === isset($_REQUEST['command'])) || ('exit' !== $_REQUEST['command']) ) {
 		openSesame($mqtt, $mqttTopicDoor1, $mqttTopicDoor2, $mqttDelay);
 	}
 	else {
