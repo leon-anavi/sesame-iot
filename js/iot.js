@@ -2,6 +2,19 @@ function sendCommand(userCommand) {
   $.ajax({ url: "http://127.0.0.1/sesame/",
     type: "POST",
     data: { command: userCommand },
+    beforeSend: function() {
+      //Show loading message
+      $.mobile.loading('show', {
+          theme: "a",
+          text: 'Loading...',
+          textonly: false,
+          textVisible: true
+      });
+    },
+    complete: function() {
+      //Hide loading message
+      $.mobile.loading('hide');
+    },
     //Success callback
     success: function(result) {
       var error = JSON.parse(result);
