@@ -1,4 +1,13 @@
+//Delay between opeing the 1st and the 2nd door (in seconds)
+var settingsDelay = 30;
+
+function setButtonsStatus(status) {
+  $('#buttonEntrance').button(status);
+  $('#buttonExit').button(status);
+}
+
 function sendCommand(userCommand) {
+
   $.ajax({ url: "http://127.0.0.1/sesame/",
     type: "POST",
     data: { command: userCommand },
@@ -17,6 +26,10 @@ function sendCommand(userCommand) {
     },
     //Success callback
     success: function(result) {
+
+      setButtonsStatus('disable');
+      setTimeout(function(){ setButtonsStatus('enable'); }, settingsDelay*1000);
+
       var error = JSON.parse(result);
       var code = (error.hasOwnProperty('errorCode')) ? error.errorCode : 0;
       var message = (error.hasOwnProperty('errorMessage')) ? error.errorMessage : '';
