@@ -2,9 +2,10 @@
 
 require("phpMQTT.php");
 
-$mqttTopicDoor1 = '/door1';
-$mqttTopicDoor2 = '/door2';
-$mqttDelay = 1;
+$mqttTopicDoor1 = '/barrier';
+$mqttTopicDoor2 = '/door';
+//delay in seconds
+$mqttDelay = 10;
 $mqtt = new phpMQTT("iot.example.com", 1883, "sesame");
 
 /*
@@ -34,6 +35,7 @@ if (false === $mqtt->connect()) {
 else {
 
 	ob_end_clean();
+	header("HTTP/1.1 200 OK");
 	header("Connection: close\r\n");
 	header("Content-Encoding: none\r\n");
 	ignore_user_abort(true); // optional
