@@ -52,6 +52,12 @@ else {
 	if ( (false === isset($_REQUEST['command'])) || ('exit' !== $_REQUEST['command']) ) {
 		openSesame($mqtt, $mqttTopicDoor1, $mqttTopicDoor2, $mqttDelayEntrance);
 	}
+	else if ('barrier' !== $_REQUEST['command']) {
+		$mqtt->publish($mqttTopicDoor1,"open");
+	}
+	else if ('door' !== $_REQUEST['command']) {
+		$mqtt->publish($mqttTopicDoor2,"open");
+	}
 	else {
 		//Run the sequence to exit the building
 		openSesame($mqtt, $mqttTopicDoor2, $mqttTopicDoor1, $mqttDelayExit);

@@ -4,6 +4,8 @@ var settingsDelay = 30;
 function setButtonsStatus(status) {
   $('#buttonEntrance').button(status);
   $('#buttonExit').button(status);
+  $('#buttonOpenBarrier').button(status);
+  $('#buttonOpenDoor').button(status);
 }
 
 function sendCommand(userCommand) {
@@ -50,6 +52,14 @@ $(document).ready(function() {
 
   $('#buttonExit').bind('click', function(event) {
     sendCommand('exit');
+  });
+
+  $('#buttonOpenBarrier').bind('click', function(event) {
+    sendCommand('barrier');
+  });
+
+  $('#buttonOpenDoor').bind('click', function(event) {
+    sendCommand('door');
   });
 
 });
