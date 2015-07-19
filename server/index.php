@@ -5,7 +5,8 @@ require("phpMQTT.php");
 $mqttTopicDoor1 = '/barrier';
 $mqttTopicDoor2 = '/door';
 //delay in seconds
-$mqttDelay = 10;
+$mqttDelayEntrance = 10;
+$mqttDelayExit = 10;
 $mqtt = new phpMQTT("iot.example.com", 1883, "sesame");
 
 /*
@@ -49,11 +50,11 @@ else {
 	//Run the sequence to enter the building if the command is еntrance
 	//or if it has not been specified.
 	if ( (false === isset($_REQUEST['command'])) || ('exit' !== $_REQUEST['command']) ) {
-		openSesame($mqtt, $mqttTopicDoor1, $mqttTopicDoor2, $mqttDelay);
+		openSesame($mqtt, $mqttTopicDoor1, $mqttTopicDoor2, $mqttDelayEntrance);
 	}
 	else {
 		//Run the sequence to exit the building
-		openSesame($mqtt, $mqttTopicDoor2, $mqttTopicDoor1, $mqttDelay);
+		openSesame($mqtt, $mqttTopicDoor2, $mqttTopicDoor1, $mqttDelayExit);
 	}
 	$mqtt->close();
 }
