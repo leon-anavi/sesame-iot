@@ -1,13 +1,12 @@
 //Delay between opeing the 1st and the 2nd door (in seconds)
-var settingsDelay = 30;
+var settingsDelayEntrance = 30;
+var settingsDelayExit = 40;
 
-var mqttHost = 'iot.anavi.org';//location.hostname;
-var mqttPort = 80;//location.port;
+var mqttHost = location.hostname;
+var mqttPort = location.port;
 var mqttPath = '/mosquitto';
 
 var client = null;
-
-var isCommandSend = false;
 
 function setButtonsStatus(status) {
   $('#buttonEntrance').button(status);
@@ -18,7 +17,7 @@ function setButtonsStatus(status) {
 
 function sendCommand(userCommand) {
 
-  $.ajax({ url: "http://127.0.0.1/sesame/",
+  $.ajax({ url: "http://"+location.hostname+"/sesame-iot/server/",
     type: "POST",
     data: { command: userCommand },
     beforeSend: function() {
@@ -37,10 +36,20 @@ function sendCommand(userCommand) {
     //Success callback
     success: function(result) {
 
-      isCommandSend = true;
+      listenMQTT();
 
       setButtonsStatus('disable');
-      setTimeout(function(){ setButtonsStatus('enable'); }, settingsDelay*1000);
+      var settingsDelay = 0;
+      if ('entrance' === userCommand) {
+        settingsDelay = settingsDelayEntrance;
+      }
+      else if ('exit' === userCommand) {
+        settingsDelay = settingsDelayExit;
+      }
+
+      if (0 < settingsDelay) {
+        setTimeout(function(){ setButtonsStatus('enable'); }, settingsDelay*1000);
+      }
 
       var error = JSON.parse(result);
       var code = (error.hasOwnProperty('errorCode')) ? error.errorCode : 0;
@@ -83,10 +92,6 @@ function changeIcon(linkId) {
 // called when a message arrives
 function onMessageArrived(message) {
   try {
-    if (false === isCommandSend) {
-      //ignore messages if command has not been sent
-      return;
-    }
     var data = JSON.parse(message.payloadString);
     if ('ok' === data.status) {
       if ('/door' === message.destinationName) {
@@ -102,6 +107,18 @@ function onMessageArrived(message) {
   catch(err) {
       console.log("MQTT message: "+message.payloadString);
   }
+}
+
+function listenMQTT() {
+  // Create a client instance
+  client = new Paho.MQTT.Client(mqttHost, Number(mqttPort), mqttPath, "clientWeb");
+
+  // set callback handlers
+  client.onConnectionLost = onConnectionLost;
+  client.onMessageArrived = onMessageArrived;
+
+  // connect the client
+  client.connect({onSuccess:onConnect});
 }
 
 $(document).ready(function() {
@@ -122,13 +139,5 @@ $(document).ready(function() {
     sendCommand('door');
   });
 
-  // Create a client instance
-  client = new Paho.MQTT.Client(mqttHost, Number(mqttPort), mqttPath, "clientWeb");
 
-  // set callback handlers
-  client.onConnectionLost = onConnectionLost;
-  client.onMessageArrived = onMessageArrived;
-
-  // connect the client
-  client.connect({onSuccess:onConnect});
 });
