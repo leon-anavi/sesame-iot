@@ -1,7 +1,7 @@
 # sesame-iot
 Simple UI and server to open doors with MQTT and ESP8266
 
-#installation
+#Installation
 
 * Install web server and PHP
 * Install MQTT broker, for example mosqitto
