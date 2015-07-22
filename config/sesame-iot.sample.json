@@ -1,0 +1,9 @@
+{
+    "host": "example.com",
+    "port": 1883,
+    "clientId": "sesame",
+    "topicDoor1": "/barrier",
+    "topicDoor2": "/door",
+    "delayEntrance": 30,
+    "delayExit": 40
+}

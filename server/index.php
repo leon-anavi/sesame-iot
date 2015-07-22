@@ -1,13 +1,7 @@
 <?php
+$configFilepath = '/etc/opt/sesame-iot/sesame-iot.json';
 
 require("phpMQTT.php");
-
-$mqttTopicDoor1 = '/barrier';
-$mqttTopicDoor2 = '/door';
-//delay in seconds
-$mqttDelayEntrance = 10;
-$mqttDelayExit = 10;
-$mqtt = new phpMQTT("iot.example.com", 1883, "sesame");
 
 /*
  * Open doors
@@ -30,38 +24,61 @@ function printResponse($code, $message) {
 	echo json_encode(array('errorCode' => $code, 'errorMessage' => $message));
 }
 
-if (false === $mqtt->connect()) {
-	printResponse(1, 'Unable to connect to MQTT broker.');
-}
-else {
+$httpProtocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
 
-	ob_end_clean();
-	header("HTTP/1.1 200 OK");
-	header("Connection: close\r\n");
-	header("Content-Encoding: none\r\n");
-	ignore_user_abort(true); // optional
-	ob_start();
-	printResponse(0, 'OK');
-	header("Content-Length: ".ob_get_length());
-	ob_end_flush();     // Strange behaviour, will not work
-	flush();            // Unless both are called !
-	ob_end_clean();
+//read configuration file
+try {
+	if (false === file_exists($configFilepath)) {
+		throw new Exception("Unable to read configurations. Please ensure that $configFilepath exists.");
+	}
+	$configData = @file_get_contents($configFilepath);
+	if (false === $configData) {
+		throw new Exception("Unable to read configurations. Please ensure that the user have rights to read $configFilepath.");
+	}
+	$config = json_decode($configData, true);
+	if (false === $config) {
+		throw new Exception('Unable to parse configations. Please make sure that the JSON format is valid.');
+	}
 
-	//Run the sequence to enter the building if the command is еntrance
-	//or if it has not been specified.
-	if ( (false === isset($_REQUEST['command'])) || ('exit' !== $_REQUEST['command']) ) {
-		openSesame($mqtt, $mqttTopicDoor1, $mqttTopicDoor2, $mqttDelayEntrance);
-	}
-	else if ('barrier' !== $_REQUEST['command']) {
-		$mqtt->publish($mqttTopicDoor1,"open");
-	}
-	else if ('door' !== $_REQUEST['command']) {
-		$mqtt->publish($mqttTopicDoor2,"open");
+	$mqtt = new phpMQTT($config['host'], $config['port'], $config['clientId']);
+
+	if (false === @$mqtt->connect()) {
+		printResponse(1, 'Unable to connect to MQTT broker.');
 	}
 	else {
-		//Run the sequence to exit the building
-		openSesame($mqtt, $mqttTopicDoor2, $mqttTopicDoor1, $mqttDelayExit);
+		ob_end_clean();
+		header("{$httpProtocol} 200 OK");
+		header("Connection: close\r\n");
+		header("Content-Encoding: none\r\n");
+		ignore_user_abort(true); // optional
+		ob_start();
+		printResponse(0, 'OK');
+		header("Content-Length: ".ob_get_length());
+		ob_end_flush();     // Strange behaviour, will not work
+		flush();            // Unless both are called !
+		ob_end_clean();
+
+		//Run the sequence to enter the building if the command is еntrance
+		//or if it has not been specified.
+		if ( (false === isset($_REQUEST['command'])) || ('exit' !== $_REQUEST['command']) ) {
+			openSesame($mqtt, $config['topicDoor1'], $config['topicDoor2'], $config['delayEntrance']);
+		}
+		else if ('barrier' !== $_REQUEST['command']) {
+			$mqtt->publish($config['topicDoor1'],"open");
+		}
+		else if ('door' !== $_REQUEST['command']) {
+			$mqtt->publish($config['topicDoor2'],"open");
+		}
+		else {
+			//Run the sequence to exit the building
+			openSesame($mqtt, $config['topicDoor2'], $config['topicDoor1'], $config['delayExit']);
+		}
+		$mqtt->close();
 	}
-	$mqtt->close();
+}
+catch (Exception $ex) {
+	header("{$httpProtocol} 500 Internal Server Error", true, 500);
+	echo $ex->getMessage()."\n";
+	exit;
 }
 ?>
