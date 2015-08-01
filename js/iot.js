@@ -13,6 +13,11 @@ function setButtonsStatus(status) {
   $('#buttonOpenDoor').button(status);
 }
 
+function showAlert(message) {
+  $("#alertMessage").text(message); 
+  $("#alert").popup("open");
+}
+
 function sendCommand(userCommand) {
 
   $.ajax({ url: "http://"+location.hostname+"/sesame-iot/server/",
@@ -42,7 +47,7 @@ function sendCommand(userCommand) {
       console.log('Code: '+code+' Message: '+message);
 
       if (0 < code) {
-        alert(message);
+        showAlert(message);
 	return;
       }
 
@@ -141,6 +146,8 @@ $(document).ready(function() {
   $('#buttonOpenDoor').bind('click', function(event) {
     sendCommand('door');
   });
+
+  $( "#alert" ).popup();
 
 
 });

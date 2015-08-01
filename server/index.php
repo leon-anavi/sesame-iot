@@ -106,7 +106,7 @@ try {
 
 	if ( (1 === semaphoreRead($config['semaphoreDoor1'])) || (1 === semaphoreRead($config['semaphoreDoor2'])) ) {
 		//Only one user can use the system at a time, other users must be rejected
-		printHttpResponse(2, 'System is currently in use. Please wait...');
+		printHttpResponse(2, 'System is currently in use. Please try again later...');
 	}
 	elseif (false === @$mqtt->connect()) {
 		//Error: unable to connect PHP to MQTT broker

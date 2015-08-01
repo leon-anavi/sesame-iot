@@ -46,6 +46,16 @@
     </ul>
   </div>
 
+  <div data-role="popup" id="alert" data-position-to="window" data-transition="turn">
+	<div data-role="header">
+		<h1>Alert</h1>
+	</div>
+	<div role="main" class="ui-content">
+		<h2 id="alertMessage"></h2>
+		<a href="#" data-role="button" data-rel="back" data-theme="b">OK</a>
+	</div>
+  </div>
+
 </div>
 
 <div class="ui-loader-background"> </div>
