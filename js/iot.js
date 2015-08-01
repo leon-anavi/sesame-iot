@@ -124,7 +124,7 @@ function listenMQTT() {
 $(document).ready(function() {
 
   $('#buttonEntrance').bind('click', function(event) {
-    sendCommand('еntrance');
+    sendCommand('entrance');
   });
 
   $('#buttonExit').bind('click', function(event) {
