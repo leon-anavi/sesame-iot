@@ -15,6 +15,17 @@ require("phpMQTT.php");
  * @throws nothing
  */
 function openSesame($mqtt, $topic1, $topic2, $delay) {
+	global $config;
+	$semaphoreDoor1 = $config['semaphoreDoor1'];
+	$semaphoreDoor2 = $config['semaphoreDoor2'];
+
+	if ( (1 === semaphoreRead($semaphoreDoor1)) || (1 === semaphoreRead($semaphoreDoor2)) ) {
+		return;
+	}
+
+	semaphoreWrite($semaphoreDoor1, 1);
+	semaphoreWrite($semaphoreDoor2, 1);
+
 	if (false !== $mqtt->connect()) {
 		$mqtt->publish($topic1,"open");
 		$mqtt->close();
@@ -23,6 +34,29 @@ function openSesame($mqtt, $topic1, $topic2, $delay) {
 	if (false !== $mqtt->connect()) {
 		$mqtt->publish($topic2,"open");
 		$mqtt->close();
+	}
+
+	semaphoreWrite($semaphoreDoor1, 0);
+	semaphoreWrite($semaphoreDoor2, 0);
+}
+
+function semaphoreWrite($file, $status) {
+	$fp = fopen($file, 'w+');
+	if (false === $fp) {
+		echo "unable to create file\n";
+		return;
+	}
+	fwrite($fp, $status);
+	fclose($fp);
+}
+
+function semaphoreRead($file) {
+	return (int)file_get_contents($file);
+}
+
+function semaphoreModifiedTime($file) {
+	if (file_exists($file)) {
+		return date ("d/m/Y H:i:s", filemtime($file));
 	}
 }
 
@@ -66,11 +100,23 @@ try {
 		header("Content-Encoding: none\r\n");
 		ignore_user_abort(true); // optional
 		ob_start();
-		printResponse(0, 'OK');
+
+		$exit = false;
+		if ( (1 === semaphoreRead($config['semaphoreDoor1'])) || (1 === semaphoreRead($config['semaphoreDoor2'])) ) {
+			$exit = true;
+        		printResponse(2, 'Someone else is using the system. Please wait...');
+		}
+		else {
+			printResponse(0, 'OK');
+		}
 		header("Content-Length: ".ob_get_length());
 		ob_end_flush();     // Strange behaviour, will not work
 		flush();            // Unless both are called !
 		ob_end_clean();
+
+		if (true == $exit) {
+			exit;
+		}
 
 		//Run the sequence to enter the building if the command is еntrance
 		//or if it has not been specified.

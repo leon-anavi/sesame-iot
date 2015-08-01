@@ -36,6 +36,16 @@ function sendCommand(userCommand) {
 
       listenMQTT();
 
+      var error = JSON.parse(result);
+      var code = (error.hasOwnProperty('errorCode')) ? error.errorCode : 0;
+      var message = (error.hasOwnProperty('errorMessage')) ? error.errorMessage : '';
+      console.log('Code: '+code+' Message: '+message);
+
+      if (0 < code) {
+        alert(message);
+	return;
+      }
+
       var settingsDelay = 0;
       if ('entrance' === userCommand) {
         settingsDelay = settingsDelayEntrance;
@@ -48,11 +58,6 @@ function sendCommand(userCommand) {
 	setButtonsStatus('disable');
         setTimeout(function(){ setButtonsStatus('enable'); }, settingsDelay*1000);
       }
-
-      var error = JSON.parse(result);
-      var code = (error.hasOwnProperty('errorCode')) ? error.errorCode : 0;
-      var message = (error.hasOwnProperty('errorMessage')) ? error.errorMessage : '';
-      console.log('Code: '+code+' Message: '+message);
     },
     //Error callback
     error: function(xhr){
