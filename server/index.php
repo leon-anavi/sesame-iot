@@ -64,6 +64,22 @@ function printResponse($code, $message) {
 	echo json_encode(array('errorCode' => $code, 'errorMessage' => $message));
 }
 
+function printHttpResponse($code, $message) {
+	ob_end_clean();
+	header("{$httpProtocol} 200 OK");
+	header("Connection: close\r\n");
+	header("Content-Encoding: none\r\n");
+	ignore_user_abort(true); // optional
+	ob_start();
+
+	printResponse($code, $message);
+
+	header("Content-Length: ".ob_get_length());
+	ob_end_flush();     // Strange behaviour, will not work
+	flush();            // Unless both are called !
+	ob_end_clean();
+}
+
 $httpProtocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
 
 $isConnected = false;
@@ -88,36 +104,17 @@ try {
 
 	$mqtt = new phpMQTT($config['host'], $config['port'], $config['clientId']);
 
-	if (false === @$mqtt->connect()) {
+	if ( (1 === semaphoreRead($config['semaphoreDoor1'])) || (1 === semaphoreRead($config['semaphoreDoor2'])) ) {
+		//Only one user can use the system at a time, other users must be rejected
+		printHttpResponse(2, 'System is currently in use. Please wait...');
+	}
+	elseif (false === @$mqtt->connect()) {
+		//Error: unable to connect PHP to MQTT broker
 		printResponse(1, 'Unable to connect to MQTT broker.');
 	}
 	else {
 		$isConnected = true;
-
-		ob_end_clean();
-		header("{$httpProtocol} 200 OK");
-		header("Connection: close\r\n");
-		header("Content-Encoding: none\r\n");
-		ignore_user_abort(true); // optional
-		ob_start();
-
-		$exit = false;
-		if ( (1 === semaphoreRead($config['semaphoreDoor1'])) || (1 === semaphoreRead($config['semaphoreDoor2'])) ) {
-			$exit = true;
-        		printResponse(2, 'Someone else is using the system. Please wait...');
-		}
-		else {
-			printResponse(0, 'OK');
-		}
-		header("Content-Length: ".ob_get_length());
-		ob_end_flush();     // Strange behaviour, will not work
-		flush();            // Unless both are called !
-		ob_end_clean();
-
-		if (true == $exit) {
-			exit;
-		}
-
+		printHttpResponse(0, 'OK');
 		//Run the sequence to enter the building if the command is еntrance
 		//or if it has not been specified.
 		if ('entrance' === $_REQUEST['command']) {
@@ -144,6 +141,7 @@ catch (Exception $ex) {
 	exit;
 }
 finally {
+	//Close connection to MQTT broker
 	if ($isConnected) {
 		$mqtt->close();
 	}

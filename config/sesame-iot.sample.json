@@ -5,5 +5,7 @@
     "topicDoor1": "/barrier",
     "topicDoor2": "/door",
     "delayEntrance": 30,
-    "delayExit": 40
+    "delayExit": 40,
+    "semaphoreDoor1": "/etc/opt/sesame-iot/barrier.shm",
+    "semaphoreDoor2": "/etc/opt/sesame-iot/door.shm"
 }
