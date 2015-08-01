@@ -1,6 +1,4 @@
 //Delay between opeing the 1st and the 2nd door (in seconds)
-var settingsDelayEntrance = 30;
-var settingsDelayExit = 40;
 
 var mqttHost = location.hostname;
 var mqttPort = (!location.port) ? 80 : location.port;
@@ -38,7 +36,6 @@ function sendCommand(userCommand) {
 
       listenMQTT();
 
-      setButtonsStatus('disable');
       var settingsDelay = 0;
       if ('entrance' === userCommand) {
         settingsDelay = settingsDelayEntrance;
@@ -48,6 +45,7 @@ function sendCommand(userCommand) {
       }
 
       if (0 < settingsDelay) {
+	setButtonsStatus('disable');
         setTimeout(function(){ setButtonsStatus('enable'); }, settingsDelay*1000);
       }
 

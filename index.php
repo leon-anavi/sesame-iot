@@ -8,6 +8,16 @@
   <script src="jqm/jquery-1.11.3.min.js"></script>
   <script src="jqm/jquery.mobile-1.4.5.min.js"></script>
   <script src="paho/mqttws31.js"></script>
+  <script>
+<?php
+	$configFilepath = '/etc/opt/sesame-iot/sesame-iot.json';
+	$configData = @file_get_contents($configFilepath);
+	$config = json_decode($configData, true);
+	
+	echo "\tvar settingsDelayEntrance = {$config['delayEntrance']};\n";
+	echo "\tvar settingsDelayExit = {$config['delayExit']};\n";
+?>
+  </script>
   <script src="js/iot.js"></script>
 </head>
 <body>

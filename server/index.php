@@ -32,6 +32,8 @@ function printResponse($code, $message) {
 
 $httpProtocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
 
+$isConnected = false;
+
 //read configuration file
 try {
 	if (false === file_exists($configFilepath)) {
@@ -46,12 +48,18 @@ try {
 		throw new Exception('Unable to parse configations. Please make sure that the JSON format is valid.');
 	}
 
+	if (false === isset($_REQUEST['command'])) {
+		throw new Exception('Command not specified');
+	}
+
 	$mqtt = new phpMQTT($config['host'], $config['port'], $config['clientId']);
 
 	if (false === @$mqtt->connect()) {
 		printResponse(1, 'Unable to connect to MQTT broker.');
 	}
 	else {
+		$isConnected = true;
+
 		ob_end_clean();
 		header("{$httpProtocol} 200 OK");
 		header("Connection: close\r\n");
@@ -66,25 +74,32 @@ try {
 
 		//Run the sequence to enter the building if the command is еntrance
 		//or if it has not been specified.
-		if ( (false === isset($_REQUEST['command'])) || ('exit' !== $_REQUEST['command']) ) {
+		if ('entrance' === $_REQUEST['command']) {
 			openSesame($mqtt, $config['topicDoor1'], $config['topicDoor2'], $config['delayEntrance']);
 		}
-		else if ('barrier' !== $_REQUEST['command']) {
+		else if ('barrier' === $_REQUEST['command']) {
 			$mqtt->publish($config['topicDoor1'],"open");
 		}
-		else if ('door' !== $_REQUEST['command']) {
+		else if ('door' === $_REQUEST['command']) {
 			$mqtt->publish($config['topicDoor2'],"open");
 		}
-		else {
+		else if ('exit' === $_REQUEST['command']) {
 			//Run the sequence to exit the building
 			openSesame($mqtt, $config['topicDoor2'], $config['topicDoor1'], $config['delayExit']);
 		}
-		$mqtt->close();
+		else {
+			throw new Exception('Command not found.');
+		}
 	}
 }
 catch (Exception $ex) {
 	header("{$httpProtocol} 500 Internal Server Error", true, 500);
 	echo $ex->getMessage()."\n";
 	exit;
+}
+finally {
+	if ($isConnected) {
+		$mqtt->close();
+	}
 }
 ?>
