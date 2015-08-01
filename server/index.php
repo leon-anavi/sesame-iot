@@ -15,9 +15,15 @@ require("phpMQTT.php");
  * @throws nothing
  */
 function openSesame($mqtt, $topic1, $topic2, $delay) {
-	$mqtt->publish($topic1,"open");
+	if (false !== $mqtt->connect()) {
+		$mqtt->publish($topic1,"open");
+		$mqtt->close();
+	}
 	sleep($delay);
-	$mqtt->publish($topic2,"open");
+	if (false !== $mqtt->connect()) {
+		$mqtt->publish($topic2,"open");
+		$mqtt->close();
+	}
 }
 
 function printResponse($code, $message) {

@@ -3,7 +3,7 @@ var settingsDelayEntrance = 30;
 var settingsDelayExit = 40;
 
 var mqttHost = location.hostname;
-var mqttPort = location.port;
+var mqttPort = (!location.port) ? 80 : location.port;
 var mqttPath = '/mosquitto';
 
 var client = null;
