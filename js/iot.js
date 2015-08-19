@@ -148,6 +148,18 @@ $(document).ready(function() {
   });
 
   $( "#alert" ).popup();
+  $( "#pinAlert" ).popup();
 
+  $('#buttonLogin').bind('click', function(event) {
+    var pin = $('#pin').val();
+    //Yeah, yeah, yeah... no security... stupid solution just for a demo
+    if (1000 != pin) {
+      $("#pinAlertMessage").text('Wrong PIN');
+      $("#pinAlert").popup("open");
+    }
+    else {
+      $.mobile.pageContainer.pagecontainer("change", "#pageSesame");
+    }
+  });
 
 });

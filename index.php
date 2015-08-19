@@ -22,7 +22,30 @@
 </head>
 <body>
 
-<div data-role="page" id="sesame">
+<div data-role="page" id="pagePin">
+  <div data-role="header">
+    <h1>Sesame</h1>
+  </div>
+
+  <div data-role="content">
+    <label for="pin">PIN:</label>
+    <input type="tel" maxlength="4" inputmode="numeric" name="pin" id="pin" value="" autofocus required />
+    <input type="button" id="buttonLogin" name="buttonLogin" value="OK" />
+
+  <div data-role="popup" id="pinAlert" data-position-to="window" data-transition="turn">
+        <div data-role="header">
+                <h1>Alert</h1>
+        </div>
+        <div role="main" class="ui-content">
+                <h2 id="pinAlertMessage"></h2>
+                <a href="#" data-rel="back" data-role="button" data-theme="b">OK</a>
+        </div>
+  </div>
+
+  </div><!-- /content -->
+</div>
+
+<div data-role="page" id="pageSesame">
   <div data-role="header">
     <h1>Sesame</h1>
   </div>

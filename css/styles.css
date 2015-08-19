@@ -13,3 +13,7 @@
 .ui-loading .ui-loader-background {
   display:block;
 }
+
+input[type=tel] {
+    -webkit-text-security: square;
+}
