@@ -19,10 +19,6 @@ function openSesame($mqtt, $topic1, $topic2, $delay) {
 	$semaphoreDoor1 = $config['semaphoreDoor1'];
 	$semaphoreDoor2 = $config['semaphoreDoor2'];
 
-	if ( (1 === semaphoreRead($semaphoreDoor1)) || (1 === semaphoreRead($semaphoreDoor2)) ) {
-		return;
-	}
-
 	semaphoreWrite($semaphoreDoor1, 1);
 	semaphoreWrite($semaphoreDoor2, 1);
 
@@ -104,7 +100,16 @@ try {
 
 	$mqtt = new phpMQTT($config['host'], $config['port'], $config['clientId']);
 
-	if ( (1 === semaphoreRead($config['semaphoreDoor1'])) || (1 === semaphoreRead($config['semaphoreDoor2'])) ) {
+
+	$maxDelay = ( $config['delayEntrance'] > $config['delayExit'] ) ? 
+               $config['delayEntrance'] : $config['delayExit'];
+	$maxSemaphoreModifiedDate = ( filemtime($config['semaphoreDoor1']) > filemtime($config['semaphoreDoor2']) ) ?
+		filemtime($config['semaphoreDoor1']) : filemtime($config['semaphoreDoor2']);
+	//Refuse to open the door if the system is in use, aka if any of the semaphores is set to 1
+	//and if the last modified date of the semaphore plus the delay is less than the current timestamp
+	if ( ( (1 === semaphoreRead($config['semaphoreDoor1'])) || 
+		(1 === semaphoreRead($config['semaphoreDoor2'])) ) &&  
+		( time() < ($maxSemaphoreModifiedDate + $maxDelay + 60) ) ) {
 		//Only one user can use the system at a time, other users must be rejected
 		printHttpResponse(2, 'System is currently in use. Please try again later...');
 	}
